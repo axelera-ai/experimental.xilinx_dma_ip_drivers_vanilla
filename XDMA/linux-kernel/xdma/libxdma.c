@@ -26,6 +26,7 @@
 #include <linux/errno.h>
 #include <linux/sched.h>
 #include <linux/vmalloc.h>
+#include <linux/dma-mapping.h>
 
 #include "libxdma.h"
 #include "libxdma_api.h"
@@ -103,6 +104,20 @@ static DEFINE_SPINLOCK(xdev_rcu_lock);
 #ifndef list_last_entry
 #define list_last_entry(ptr, type, member) list_entry((ptr)->prev, type, member)
 #endif
+
+static inline int
+pci_map_sg(struct pci_dev *hwdev, struct scatterlist *sg,
+	   int nents, int direction)
+{
+	return dma_map_sg(&hwdev->dev, sg, nents, (enum dma_data_direction)direction);
+}
+
+static inline void
+pci_unmap_sg(struct pci_dev *hwdev, struct scatterlist *sg,
+	     int nents, int direction)
+{
+	dma_unmap_sg(&hwdev->dev, sg, nents, (enum dma_data_direction)direction);
+}
 
 static inline int xdev_list_add(struct xdma_dev *xdev)
 {
@@ -2908,8 +2923,8 @@ static void transfer_destroy(struct xdma_dev *xdev, struct xdma_transfer *xfer)
 		struct sg_table *sgt = xfer->sgt;
 
 		if (sgt->nents) {
-			pci_unmap_sg(xdev->pdev, sgt->sgl, sgt->nents,
-				     xfer->dir);
+/*			pci_unmap_sg(xdev->pdev, sgt->sgl, sgt->nents,
+				     xfer->dir);*/
 			sgt->nents = 0;
 		}
 	}
@@ -4191,16 +4206,16 @@ static int set_dma_mask(struct pci_dev *pdev)
 
 	dbg_init("sizeof(dma_addr_t) == %ld\n", sizeof(dma_addr_t));
 	/* 64-bit addressing capability for XDMA? */
-	if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(64))) {
+	if (!dma_set_mask(&pdev->dev, DMA_BIT_MASK(64))) {
 		/* query for DMA transfer */
 		/* @see Documentation/DMA-mapping.txt */
 		dbg_init("pci_set_dma_mask()\n");
 		/* use 64-bit DMA */
 		dbg_init("Using a 64-bit DMA mask.\n");
-		pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
-	} else if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(32))) {
+		dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(64));
+	} else if (!dma_set_mask(&pdev->dev, DMA_BIT_MASK(32))) {
 		dbg_init("Could not set 64-bit DMA mask.\n");
-		pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+		dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
 		/* use 32-bit DMA */
 		dbg_init("Using a 32-bit DMA mask.\n");
 	} else {
