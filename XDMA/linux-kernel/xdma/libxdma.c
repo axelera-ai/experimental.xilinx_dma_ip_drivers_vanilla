@@ -2923,8 +2923,8 @@ static void transfer_destroy(struct xdma_dev *xdev, struct xdma_transfer *xfer)
 		struct sg_table *sgt = xfer->sgt;
 
 		if (sgt->nents) {
-/*			pci_unmap_sg(xdev->pdev, sgt->sgl, sgt->nents,
-				     xfer->dir);*/
+			pci_unmap_sg(xdev->pdev, sgt->sgl, sgt->nents,
+				     xfer->dir);
 			sgt->nents = 0;
 		}
 	}
