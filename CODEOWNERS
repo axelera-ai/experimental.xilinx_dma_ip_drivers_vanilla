@@ -1,8 +1,8 @@
-# Written by devops-overseer generate-co on 2026-11-02. Run it again rather than editing it.
+# Written by devops-overseer generate-co on 2026-11-03. Run it again rather than editing it.
 # The rest of experimental.xilinx_dma_ip_drivers_vanilla is owned by the identity-provider teams of its top
 # 5 contributor(s) of the last 45 month(s).
 
-* @axelera-ai/team-systems-software @sujathabanoth-xlnx @prasadp-xlnx @raghusha-xlnx
+* @axelera-ai/team-systems-software
 
 /.github/ @axelera-ai/team-software-delivery
 /CODEOWNERS @axelera-ai/team-it-security @axelera-ai/team-software-delivery
